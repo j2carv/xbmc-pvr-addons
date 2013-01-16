@@ -102,6 +102,7 @@ public:
 
   bool m_playback;
   bool m_hang;
+  bool m_sendWOL;
   CStdString m_currentRecordID;
   MythFile m_currentFile;
 
@@ -122,6 +123,7 @@ MythEventHandler::MythEventHandlerPrivate::MythEventHandlerPrivate(const CStdStr
   , m_signal()
   , m_playback(false)
   , m_hang(false)
+  , m_sendWOL(false)
   , m_recordingChangeEventList()
   , m_recordingChangePinCount(0)
 {
@@ -536,7 +538,7 @@ void MythEventHandler::MythEventHandlerPrivate::RetryConnect()
   while (!IsStopped())
   {
     // wake up the backend sending magic packet
-    if (!g_szMythHostEther.IsEmpty())
+    if (m_sendWOL && !g_szMythHostEther.IsEmpty())
       XBMC->WakeOnLan(g_szMythHostEther);
 
     usleep(999999);
@@ -551,6 +553,7 @@ void MythEventHandler::MythEventHandlerPrivate::RetryConnect()
       XBMC->Log(LOG_NOTICE, "%s - Connected client to event socket", __FUNCTION__);
       XBMC->QueueNotification(QUEUE_INFO, XBMC->GetLocalizedString(30303)); // MythTV backend available
       m_hang = false;
+      m_sendWOL = false;
       HandleRecordingListChange(); // Reload all recordings
       break;
     }
@@ -596,10 +599,11 @@ void MythEventHandler::Suspend()
   }
 }
 
-void MythEventHandler::Resume()
+void MythEventHandler::Resume(bool sendWOL)
 {
   if (m_imp->IsStopped())
   {
+    m_imp->m_sendWOL = sendWOL;
     m_imp->m_lock.Clear();
     m_imp->CreateThread();
   }
