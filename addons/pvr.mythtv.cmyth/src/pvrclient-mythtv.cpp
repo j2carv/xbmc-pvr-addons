@@ -476,7 +476,8 @@ int PVRClientMythTV::GetRecordingsAmount(void)
   if (g_bExtraDebug)
     XBMC->Log(LOG_DEBUG, "%s", __FUNCTION__);
 
-  m_recordingsLock.Lock();
+  CLockObject lock(m_recordingsLock);
+
   if (m_recordings.empty())
     // Load recorings list
     res = FillRecordings();
@@ -488,7 +489,6 @@ int PVRClientMythTV::GetRecordingsAmount(void)
         res++;
     }
   }
-  m_recordingsLock.Unlock();
   if (res == 0)
     XBMC->Log(LOG_INFO, "%s: No recording", __FUNCTION__);
   return res;
@@ -499,7 +499,8 @@ PVR_ERROR PVRClientMythTV::GetRecordings(ADDON_HANDLE handle)
   if (g_bExtraDebug)
     XBMC->Log(LOG_DEBUG, "%s", __FUNCTION__);
 
-  m_recordingsLock.Lock();
+  CLockObject lock(m_recordingsLock);
+
   if (m_recordings.empty())
     // Load recorings list
     FillRecordings();
@@ -562,7 +563,6 @@ PVR_ERROR PVRClientMythTV::GetRecordings(ADDON_HANDLE handle)
       PVR->TransferRecordingEntry(handle, &tag);
     }
   }
-  m_recordingsLock.Unlock();
 
   if (g_bExtraDebug)
     XBMC->Log(LOG_DEBUG, "%s - Done", __FUNCTION__);
